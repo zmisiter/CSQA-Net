@@ -9,12 +9,11 @@ from torch import optim as optim
 
 
 def build_optimizer(config, model, backbone_low_lr=True):
-    # SGD或者ADAMW；backbone_low_lr代表的是更新主干网络参数的时候，学习率会比较低；正常的学习率去更新自己新加的网络
     """Build optimizer, set weight decay of normalization to 0 by default."""
-    skip = {}  # 创建空字典
+    skip = {}  
     skip_keywords = {}
-    if hasattr(model, 'no_weight_decay'):  # hasattr() 函数用于判断对象是否包含对应的属性。
-        skip = model.no_weight_decay()  # 有的用权重衰减、有的没用权重衰减
+    if hasattr(model, 'no_weight_decay'):  
+        skip = model.no_weight_decay() 
     if hasattr(model, 'no_weight_decay_keywords'):
         skip_keywords = model.no_weight_decay_keywords()
     if backbone_low_lr:
@@ -25,7 +24,7 @@ def build_optimizer(config, model, backbone_low_lr=True):
     opt_lower = config.train.optimizer.lower()
     optimizer = None
     if opt_lower == 'sgd':
-        optimizer = optim.SGD(parameters, momentum=config.train.momentum, nesterov=True,  # 动量加快梯度下降的速度
+        optimizer = optim.SGD(parameters, momentum=config.train.momentum, nesterov=True, 
                               lr=config.train.lr, weight_decay=config.train.weight_decay)
 
     elif opt_lower == 'adamw':
@@ -51,15 +50,15 @@ def set_elp_lr(model):
         else:
             without_elp.append(param)
             # print(f'Other{name}')
-    return [{'params': with_elp},  # 新加的模块参数使用默认的学习率更新
+    return [{'params': with_elp},  
             {'params': with_attention, 'lr_scale': 0.05}, # , 'lr_scale': 0.05
             {'params': without_elp},
             {'params': has_backbone, 'lr_scale': 0.1}]   # , 'lr_scale': 0.1
-            # 主干网络参数使用默认学习率的0.1倍
+          
 
 
-def set_weight_decay(model, skip_list=(), skip_keywords=()):  # 同时实现主干网络低学习率和权重衰减的分割
-    has_decay = []  # 初始化列表
+def set_weight_decay(model, skip_list=(), skip_keywords=()):  
+    has_decay = []  
     no_decay = []
 
     for name, param in model.named_parameters():
