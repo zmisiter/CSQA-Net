@@ -8,7 +8,7 @@ from einops import rearrange
 np.seterr(divide='ignore',invalid='ignore')
 
 
-class PartsResort():  # 部件排序
+class PartsResort():  
     def __init__(self, num_center, feature_dim):
         super().__init__()
         self.num_center = num_center
@@ -17,15 +17,15 @@ class PartsResort():  # 部件排序
         self.centers = np.zeros([num_center, feature_dim])
         self.count = 0
 
-        self.permutations = list(itertools.permutations(range(num_center)))  # 该数列的全排列组合，全部送到列表中
+        self.permutations = list(itertools.permutations(range(num_center))) 
 
-    def update(self, points, order):  # 更新部件的排序信息
-        batch = points.shape[0]  # points包含部件信息
+    def update(self, points, order):
+        batch = points.shape[0] 
 
         # [batch, topN, feature_dim]
-        resorted_points = np.zeros_like(points)  # 用于存储重新排序后的部件信息
+        resorted_points = np.zeros_like(points)
         for i in range(batch):
-            resorted_points[i] = points[i][order[i], :]  # order的形状为[batch, topN]
+            resorted_points[i] = points[i][order[i], :]  # shape: [batch, topN]
 
         # [topN, feature_dim]
         resorted_points = np.mean(resorted_points, axis=0)
@@ -38,7 +38,7 @@ class PartsResort():  # 部件排序
         # input: points [batch, topN, feature_dim]
         # output: [batch, topN]
         batch, topN, _ = points.shape
-        if np.sum(self.count) == 0:  # 是否需要初始化排列顺序
+        if np.sum(self.count) == 0: 
             order = np.stack([list(range(topN))] * batch, axis=0)
             # self.update(points, order)
         else:
@@ -50,30 +50,30 @@ class PartsResort():  # 部件排序
             self.update(points, order)
         return order
 
-    def graph_assign(self, topn_points):  # 根据相似度（邻接矩阵）来计算排序顺序
-        adj_matrix_center = np.dot(self.centers, self.centers.transpose())  # 这个矩阵用于表示部件中心点之间的相似度
-        adj_matrix = np.dot(topn_points, topn_points.transpose())  # 计算了部件之间的相似度矩阵
+    def graph_assign(self, topn_points): 
+        adj_matrix_center = np.dot(self.centers, self.centers.transpose())  
+        adj_matrix = np.dot(topn_points, topn_points.transpose())  
         adj_matrix_center = adj_matrix_center / adj_matrix_center.max()
-        adj_matrix = adj_matrix / adj_matrix.max()  # 归一化
+        adj_matrix = adj_matrix / adj_matrix.max() 
 
         max_similarity = 0
         order = list(range(self.num_center))
-        for perm in self.permutations:  # 遍历每个排列序列
+        for perm in self.permutations:  
             adj_matrix = adj_matrix[:, perm][perm, :]
             prod = np.sum(adj_matrix_center * adj_matrix)
-            if prod > max_similarity:  # 根据点积值更新相似度值和排列序列
+            if prod > max_similarity: 
                 max_similarity = prod
                 order = list(perm)
             # print(max_similarity, prod, order)
         return order
 
 def list_loss(logits, targets):
-    # temp = F.log_softmax(logits, -1)  # 64 196 对行做归一化
+    # temp = F.log_softmax(logits, -1) 
     # loss = [-temp[i][targets[i].item()] for i in range(logits.size(0))]
     # return torch.stack(loss)
     p = nn.CrossEntropyLoss(reduction='none')
     loss = p(logits, targets)
-    return loss   # 要确保stack后的loss的维度是64
+    return loss  
 
 class LabelSmoothingCrossEntropy(nn.Module):
     """ NLL loss with label smoothing.
@@ -93,16 +93,16 @@ class LabelSmoothingCrossEntropy(nn.Module):
         return loss.mean()
 
 
-def ranking_loss(score, targets):   # 根据分数来进行排名  targets:[B, 4]
+def ranking_loss(score, targets):   # targets:[B, 4]
     if torch.cuda.is_available():
-        loss = torch.zeros(1).cuda()   # 初始化loss
+        loss = torch.zeros(1).cuda()   
         data_type = torch.cuda.FloatTensor
     else:
         loss = torch.zeros(1)
         data_type = torch.FloatTensor
-    batch_size = score.size(0)   # 取B
+    batch_size = score.size(0) 
 
-    for i in range(targets.shape[1]):  # 遍历每个部件
+    for i in range(targets.shape[1]): 
         targets_p = (targets > targets[:, i].unsqueeze(1)).type(data_type)
         pivot = score[:, i].unsqueeze(1)
         loss_p = (1 - pivot + score) * targets_p
@@ -128,15 +128,10 @@ def smooth_CE(logits, label, peak):
 
 
 def keep_top_k_row(matrix, k):
-    # 获取矩阵的形状
     batch_size, num_nodes, _, _= matrix.shape
-
-    # 获取每一行的前K个最大值的索引
     values, indices = torch.topk(matrix, k, dim=-1)
-    # 创建一个与原矩阵相同大小的全零矩阵
     result = torch.zeros_like(matrix)
-
-    # 使用scatter将前K个最大值保留，其余置零
+    
     # values = torch.gather(matrix,-1,indices)
     result.scatter_(-1,indices,values)
 
