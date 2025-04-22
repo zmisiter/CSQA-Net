@@ -14,7 +14,7 @@ from torchvision.datasets.utils import *
 from typing import Tuple
 
 
-# a = torchvision.datasets.Food101()  # 现在都不需要调接口了,但是需要自己魔改
+# a = torchvision.datasets.Food101() 
 
 
 class CUB(VisionDataset):
@@ -212,10 +212,10 @@ class Dogs(VisionDataset):
 
         self._flat_breed_images = self._breed_images
 
-    def __len__(self):  # 判断数据集的大小
+    def __len__(self):  
         return len(self._flat_breed_images)
 
-    def __getitem__(self, index):  # 标准的采样；这两者一定是有的，接口都是一样的，有就放在dataset文件里面
+    def __getitem__(self, index):  
         image_name, target = self._flat_breed_images[index]
         image_path = join(self.images_folder, image_name)
         image = self.loader(image_path)
@@ -386,10 +386,10 @@ class NABirds(VisionDataset):
         self.class_names = self.load_class_names(dataset_path)
         self.class_hierarchy = self.load_hierarchy(dataset_path)
 
-    def __len__(self):  # 判断数据集的大小
+    def __len__(self): 
         return len(self.data)
 
-    def __getitem__(self, idx):  # 标准的采样，前两个是都有的
+    def __getitem__(self, idx): 
         sample = self.data.iloc[idx]
         path = os.path.join(self.root, self.base_folder, sample.filepath)
         target = self.label_map[sample.target]
