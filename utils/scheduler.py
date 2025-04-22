@@ -13,24 +13,24 @@ from timm.scheduler.step_lr import StepLRScheduler
 
 
 def build_scheduler(config, optimizer, step_per_epoch):
-    num_steps = int(config.train.epochs * step_per_epoch)  # 总步数
-    warmup_steps = int(config.train.warmup_epochs * step_per_epoch)  # 预热步数
+    num_steps = int(config.train.epochs * step_per_epoch)  
+    warmup_steps = int(config.train.warmup_epochs * step_per_epoch)  
     lr_scheduler = None
     # lr_min = config.train.lr * 1e-2
     lr_min = config.train.lr * 0
-    warmup_lr = config.train.lr * 1e-3  # 预热学习率  这里怎么和显示的对不上
-    if config.train.scheduler == 'cosine':  # 学习率衰减，一般都是cos衰减
+    warmup_lr = config.train.lr * 1e-3  
+    if config.train.scheduler == 'cosine': 
         lr_scheduler = CosineLRScheduler(
             optimizer,
-            t_initial=num_steps,  # 学习率将在这些步数内进行调度
+            t_initial=num_steps,  
             lr_min=lr_min,
             warmup_lr_init=warmup_lr,
             warmup_t=warmup_steps,
             warmup_prefix=True,
-            cycle_limit=1,  # 周期数为1，学习率将从初始学习率逐渐减小到最小学习率，然后保持最小学习率不变
+            cycle_limit=1,  
             t_in_epochs=False,
         )
-    elif config.train.scheduler == 'linear':  # 线性衰减
+    elif config.train.scheduler == 'linear':  
         lr_scheduler = LinearLRScheduler(
             optimizer,
             t_initial=num_steps,
@@ -39,7 +39,7 @@ def build_scheduler(config, optimizer, step_per_epoch):
             warmup_t=warmup_steps,
             t_in_epochs=False,
         )
-    elif config.train.scheduler == 'step':  # step衰减
+    elif config.train.scheduler == 'step':  
         lr_scheduler = StepLRScheduler(
             optimizer,
             decay_t=15,
@@ -51,21 +51,6 @@ def build_scheduler(config, optimizer, step_per_epoch):
 
     return lr_scheduler
 
-
-# def build_scheduler(config, optimizer, step_per_epoch):
-# 	num_steps = int(config.train.epochs * step_per_epoch)
-# 	warmup_steps = int(config.train.warmup_epochs * step_per_epoch)
-#
-# 	lr_scheduler = None
-# 	# lr_min = config.train.lr * 1e-2
-# 	# warmup_lr = config.train.lr * 1e-3
-# 	if config.train.scheduler == 'cosine':
-# 		lr_scheduler = WarmupCosineSchedule(optimizer,warmup_steps,num_steps)
-# 	elif config.train.scheduler == 'linear':
-# 		lr_scheduler = WarmupLinearSchedule(optimizer,warmup_steps,num_steps)
-# 	elif config.train.scheduler == 'step':
-# 		lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer,step_per_epoch*15,0.1)
-# 	return lr_scheduler
 
 class LinearLRScheduler(Scheduler):
     def __init__(self,
