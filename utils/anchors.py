@@ -37,7 +37,7 @@ def generate_default_anchor_maps(anchors_setting=None, input_shape=(448, 448)):
         aspect_ratios = anchor_info['aspect_ratio']
 
         output_map_shape = np.ceil(input_shape.astype(np.float32) / stride)
-        output_map_shape = output_map_shape.astype(np.int64)    # 原来是np.int
+        output_map_shape = output_map_shape.astype(np.int64) 
         output_shape = tuple(output_map_shape) + (4,)
         ostart = stride / 2.
         oy = np.arange(ostart, ostart + stride * output_shape[0], stride)
@@ -66,17 +66,6 @@ def generate_default_anchor_maps(anchors_setting=None, input_shape=(448, 448)):
 
 
 def hard_nms(cdds, topn=4, iou_thresh=0.25):
-    """
-        执行硬非极大值抑制，选择一组具有代表性的框。
-
-        参数:
-        - cdds: 候选框的数组，每行表示一个框，前5列为(score, y0, x0, y1, x1)
-        - topn: 选择的最大框数量，默认为4
-        - iou_thresh: 用于判断框重叠的IoU（交并比）阈值，默认为0.25
-
-        返回:
-        - 选定的具有代表性的框的数组，每行格式同输入
-    """
     if not (type(cdds).__module__ == 'numpy' and len(cdds.shape) == 2 and cdds.shape[1] >= 5):
         raise TypeError('edge_box_map should be N * 5+ ndarray')
 
