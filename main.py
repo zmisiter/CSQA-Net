@@ -35,7 +35,7 @@ def build_model(config, num_classes):
 	if config.local_rank in [-1, 0]:
 		PSetting(log, 'Model Structure', config.model.keys(), config.model.values(),
 				 rank=config.local_rank) 
-		PSetting(log, 'ELPModel Structure', config.elp.keys(), config.elp.values(),
+		PSetting(log, 'QPModel Structure', config.qp.keys(), config.qp.values(),
 				 rank=config.local_rank)
 		log.save(model) 
 	return model, model_without_ddp
@@ -214,7 +214,7 @@ def train_one_epoch(config, model, criterion, train_loader, optimizer,
 			if config.model.baseline_model:  
 				logits = model(x) 
 			else:
-				logits = model(x, y, epoch, step, step_per_epoch, config.model.no_elp, config.model.no_class)
+				logits = model(x, y, epoch, step, step_per_epoch, config.model.no_qp, config.model.no_class)
 
 		logits, loss, other_loss = loss_in_iters(logits, y, criterion) 
 
@@ -252,7 +252,7 @@ def train_one_epoch(config, model, criterion, train_loader, optimizer,
 		# loss_reg_meter.update(loss_reg.item(), y.size(0))
 
 		lr = optimizer.param_groups[2]['lr'] 
-		optimizer.param_groups[0]['lr'] = config.elp.lr
+		optimizer.param_groups[0]['lr'] = config.qp.lr
 		# print(optimizer.param_groups[0]['lr'],optimizer.param_groups[1]['lr'],optimizer.param_groups[2]['lr'])
 		if writer:
 			writer.add_scalar("train/loss", loss_meter.val, global_step)
