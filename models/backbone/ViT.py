@@ -365,7 +365,7 @@ class VisionTransformer(nn.Module):
 			x = checkpoint_seq(self.blocks, x)
 		else:
 			for i, block in enumerate(self.blocks):
-				if i >= len(self.blocks) - 3:  # 最后三层
+				if i >= len(self.blocks) - 3:
 					x, attention_map = block(x, return_attention=True)
 					attention_maps.append(attention_map)
 				else:
@@ -374,20 +374,11 @@ class VisionTransformer(nn.Module):
 					x_list.append(x[:, 0])
 
 		if attention_maps:
-			# 将最后三层的注意力图堆叠
 			stacked_attention_maps = torch.stack(attention_maps,
 			                                     dim=0)  # [3, batch_size, num_heads, num_tokens, num_tokens]
-
-			# 计算最后三层的平均注意力图
 			avg_attention_map, _ = stacked_attention_maps.max(dim=0)  # [batch_size, num_heads, num_tokens, num_tokens]
-
-			# 对所有头的平均注意力
 			avg_attention_map, _ = avg_attention_map.max(dim=1)  # [batch_size, num_tokens, num_tokens]
-
-			# 忽略 cls token，对剩余的 tokens 计算平均注意力
 			avg_attention_scores = avg_attention_map[:, 0, 1:]  # [batch_size, num_tokens - 1]
-
-			# 获取最终的前topk高响应值的tokens
 			topk_values, topk_indices = torch.topk(avg_attention_scores, k=3, dim=1)
 
 		return x_list, x[:, 1:], topk_indices
