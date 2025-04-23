@@ -17,7 +17,7 @@ def build_optimizer(config, model, backbone_low_lr=True):
     if hasattr(model, 'no_weight_decay_keywords'):
         skip_keywords = model.no_weight_decay_keywords()
     if backbone_low_lr:
-        parameters = set_elp_lr(model)
+        parameters = set_qp_lr(model)
     else:
         parameters = set_weight_decay(model, skip, skip_keywords)
 
@@ -33,26 +33,26 @@ def build_optimizer(config, model, backbone_low_lr=True):
     return optimizer
 
 
-def set_elp_lr(model):
-    with_elp = []
+def set_qp_lr(model):
+    with_qp = []
     has_backbone= []
-    without_elp = []
+    without_qp = []
     with_attention = []
     for name, param in model.named_parameters():
-        if 'elp_list' in name:
-            with_elp.append(param)
-            # print(f'ELP{name}')
+        if 'qp_list' in name:
+            with_qp.append(param)
+            # print(f'qp{name}')
         elif 'attention6' in name:
             with_attention.append(param)
         elif 'backbone' in name:
             has_backbone.append(param)
             # print(f'Backbone{name}')
         else:
-            without_elp.append(param)
+            without_qp.append(param)
             # print(f'Other{name}')
-    return [{'params': with_elp},  
+    return [{'params': with_qp},  
             {'params': with_attention, 'lr_scale': 0.05}, # , 'lr_scale': 0.05
-            {'params': without_elp},
+            {'params': without_qp},
             {'params': has_backbone, 'lr_scale': 0.1}]   # , 'lr_scale': 0.1
           
 
