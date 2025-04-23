@@ -14,7 +14,7 @@ model:
   pre_version: ''
   no_elp: False
   no_class: False
-elp:
+qp:
   init: 2
   alpha: 0.5
   gamma: 2
@@ -22,7 +22,7 @@ elp:
 parameters:
   drop: 0.5
 train:
-  lr: 120e-3  # 120e-3   320e-3 = 85.2
+  lr: 120e-3
   epochs: 50
   warmup_epochs: 5   # 5
   clip_grad: None
