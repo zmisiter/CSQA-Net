@@ -1,0 +1,33 @@
+data:
+  img_size: 448
+  dataset: cub
+  batch_size: 16
+  topn: 4
+  resize: 550
+  padding: 8
+model:
+  type: ResNet
+  name: ResNet-50
+  baseline_model: False
+  drop_path: 0.2
+  label_smooth: 0.1
+  pre_version: ''
+  no_elp: False
+  no_class: False
+elp:
+  init: 2
+  alpha: 0.5
+  gamma: 2
+  lr: 0.01
+parameters:
+  drop: 0.5
+train:
+  lr: 120e-3  # 120e-3   320e-3 = 85.2
+  epochs: 50
+  warmup_epochs: 5   # 5
+  clip_grad: None
+  weight_decay: 5e-4
+#  freeze_backbone: True
+#misc:
+#  throughput: True
+#  eval_mode: True
