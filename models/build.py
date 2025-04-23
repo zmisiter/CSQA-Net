@@ -8,18 +8,17 @@ from models.backbone.ViT import vit_backbone
 from models.model import CurriculumConv
 
 
-# 想用其他主干网络的时候，把标准的copy到一个新文件里面，然后再把需要的函数拷进去，然后调用这个函数就好了
 
 def build_models(config, num_classes):
-    if config.model.baseline_model:  # 调用defaults中的参数，默认baseline是false;
-        model = baseline_models(config, num_classes)  # 对于baseline和backbone带不带分类头的概念-->看函数调用
+    if config.model.baseline_model:  
+        model = baseline_models(config, num_classes)  
         load_pretrained(config, model)
-        return model  # return返回之后，后边就不执行了；所以上面是带头的，下面是不带头的
+        return model  
     dim, backbone = 512, None
-    if config.model.type.lower() == 'resnet':  # .lower()函数是不管大写小写，都变成小写
+    if config.model.type.lower() == 'resnet':  
         dim = 2048
         if config.model.name.lower() == 'resnet-50':
-            backbone = resnet50()  # 魔改的res50没有分类头；这里可以加drop_path_rate=config.model.drop_path
+            backbone = resnet50()  
         elif config.model.name.lower() == 'resnet-101':
             backbone = resnet101()
         elif config.model.name.lower() == 'resnet-34':
@@ -42,20 +41,20 @@ def build_models(config, num_classes):
         backbone = vit_backbone(num_classes=num_classes)
 
     load_pretrained(config, backbone)
-    basic_dim = dim // 4  # 原本是512，其实起名字不规范，应该是瓶颈更好；四阶段要改成256  resnet 是 dim //4
+    basic_dim = dim // 4  
     model = CurriculumConv(backbone, basic_dim, dim, num_classes, config.data.topn, config.data.img_size//32,
-                           config.model.label_smooth, config.elp.init, config.elp.alpha, config.elp.gamma,
+                           config.model.label_smooth, config.qp.init, config.qp.alpha, config.qp.gamma,
                            config.data.img_size//2)
-    return model  # 这里就是defaults中说的链路，config.parameters.drop
+    return model  # config.parameters.drop
 
 
-def baseline_models(config, num_classes):  # build_models里面backbone去掉了分类头，这里使用原来的分类头，另外输入需要的类别数
+def baseline_models(config, num_classes): 
     model = None
     type = config.model.type.lower()
     if type == 'resnet':
         model = timm.models.create_model('resnet50', pretrained=False,
                                          # drop_path_rate=config.model.drop_path,
-                                         num_classes=num_classes)  # 这里是带分类头的，类别数是自己输入的
+                                         num_classes=num_classes) 
 
     elif type == 'vit':
         model = timm.models.create_model('vit_base_patch16_224_in21k', pretrained=False,
@@ -219,11 +218,9 @@ def load_pretrained(config, model):
     del checkpoint
     torch.cuda.empty_cache()
 
-# 把主干网络参数冻结，只训练自己加的东西，主干网络保持不变；反向传播导致训练速度很慢
-# 假设把整个网络的参数全部锁住，则速度和推理(推理不需要反向)速度一样快，因为不需要传播baseline的参数
 
 def freeze_backbone(model, freeze_params=False):
-    if freeze_params:  # 只有freeze_params为真时才冻结，锁起来/不锁起来都跑一下
+    if freeze_params: 
         for name, parameter in model.named_parameters():
             if name.startswith('backbone'):
                 parameter.requires_grad = False
