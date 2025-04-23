@@ -221,7 +221,7 @@ class VisionTransformer(nn.Module):
 	def forward(self, x):
 		x, cls_list = self.forward_features(x)
 		# x = self.forward_head(x)
-		return x[:,1:], cls_list   # 表示返回所有 token，不包括 cls token,如果仅想用cls token x[:, 0] 是 cls token
+		return x[:,1:], cls_list 
 
 
 def init_weights_vit_timm(module: nn.Module, name: str = ''):
