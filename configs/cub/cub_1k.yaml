@@ -6,7 +6,7 @@ data:
   resize: 550
   padding: 8
 #  blur: 0.1
-  color: 0.4
+#  color: 0.4
 model:
   type: ResNet
   name: ResNet-50
@@ -14,9 +14,9 @@ model:
   drop_path: 0.2
   pre_version: ''
   label_smooth: 0.1
-  no_elp: False
+  no_qp: False
   no_class: False
-elp:
+qp:
   init: 2
   alpha: 0.5
   gamma: 2
@@ -24,9 +24,9 @@ elp:
 parameters:
   drop: 0.5
 train:
-  lr: 120e-3  # 120e-3   320e-3 = 85.2
+  lr: 120e-3
   epochs: 50
-  warmup_epochs: 5   # 5
+  warmup_epochs: 5
   clip_grad: None
   weight_decay: 5e-4
 #  freeze_backbone: True
